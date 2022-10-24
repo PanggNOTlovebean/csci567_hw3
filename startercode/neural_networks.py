@@ -64,10 +64,8 @@ class linear_layer:
         ################################################################################
         # TODO: Implement the linear forward pass. Store the result in forward_output  #
         ################################################################################
-        # forward_output = np.zeros(shape=(X.shape[0], self.params['W'].shape[1]))
-        # interim = np.matmul(X, self.params['W'])
+
         forward_output = np.matmul(X, self.params['W']) + self.params['b'][0]
-        breakpoint()
         return forward_output
 
     def backward(self, X, grad):
@@ -94,10 +92,8 @@ class linear_layer:
         #   - backward_output (N-by-input_D numpy array, the gradient of the mini-batch loss w.r.t. X)
         # only return backward_output, but need to compute self.gradient['W'] and self.gradient['b']
         #################################################################################################
-        # breakpoint()
-        self.gradient['W'] = np.matmul(X, self.params['W'])
+        self.gradient['W'] = np.matmul(np.transpose(X), grad)
         self.gradient['b'] = np.zeros(shape=self.params['b'].shape)
-        # breakpoint()
         backward_output = np.matmul(grad, np.transpose(self.params['W']))
         return backward_output
 
@@ -135,6 +131,7 @@ class relu:
         ################################################################################
         forward_output = np.maximum(X, 0)
         self.mask = X > 0
+        self.mask = self.mask*1
         return forward_output
 
     def backward(self, X, grad):
@@ -170,8 +167,7 @@ def miniBatchGradientDescent(model, _learning_rate):
                 # TODO: update the model parameter module.params[key] by a step of gradient descent.
                 # Note again that the gradient is stored in g already.
                 ####################################################################################
-                # breakpoint()
-                module.params[key] = module.params[key] - _learning_rate * g[0]
+                module.params[key] = module.params[key] - _learning_rate * g
 
     return model
 
