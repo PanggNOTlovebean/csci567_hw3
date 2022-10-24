@@ -93,7 +93,7 @@ class linear_layer:
         # only return backward_output, but need to compute self.gradient['W'] and self.gradient['b']
         #################################################################################################
         self.gradient['W'] = np.matmul(np.transpose(X), grad)
-        self.gradient['b'] = np.zeros(shape=self.params['b'].shape)
+        self.gradient['b'] = np.sum(grad, axis = 0)
         backward_output = np.matmul(grad, np.transpose(self.params['W']))
         return backward_output
 
@@ -131,7 +131,7 @@ class relu:
         ################################################################################
         forward_output = np.maximum(X, 0)
         self.mask = X > 0
-        self.mask = self.mask*1
+        self.mask = self.mask * 1
         return forward_output
 
     def backward(self, X, grad):
@@ -277,7 +277,7 @@ def gradient_checker(DataSet, model):
         ######################################################################################
         model[layer_name].params[param_name] -= 2*epsilon
         _, _, _, f_w_subtract_epsilon = forward_pass(model, x, y)
-        approximate_gradient = (f_w_add_epsilon - f_w_subtract_epsilon)/2*epsilon_value
+        approximate_gradient = (f_w_add_epsilon - f_w_subtract_epsilon)/ (2 * epsilon_value)
         # Reset the model layer weights
         model[layer_name].params[param_name] += epsilon
         # breakpoint()
