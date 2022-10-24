@@ -65,7 +65,7 @@ class linear_layer:
         # TODO: Implement the linear forward pass. Store the result in forward_output  #
         ################################################################################
 
-        forward_output = np.matmul(X, self.params['W']) + self.params['b'][0]
+        forward_output = np.matmul(X, self.params['W']) + self.params['b']
         return forward_output
 
     def backward(self, X, grad):
