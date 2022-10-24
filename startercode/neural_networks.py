@@ -39,15 +39,16 @@ class linear_layer:
         #   - self.params['W']
         #   - self.params['b']
         ###############################################################################################
-
-
+        self.params['W'] = np.random.normal(0, 0.1, size=(input_D, output_D))
+        self.params['b'] = np.random.normal(0, 0.1, size=output_D)
 
         ###############################################################################################
         # TODO: Initialize the following two (gradients) with zeros
         #   - self.gradient['W']
         #   - self.gradient['b']
         ###############################################################################################
-
+        self.gradient['W'] = np.zeros(shape=(input_D, output_D))
+        self.gradient['b'] = np.zeros(shape=output_D)
 
     def forward(self, X):
         """
@@ -63,7 +64,10 @@ class linear_layer:
         ################################################################################
         # TODO: Implement the linear forward pass. Store the result in forward_output  #
         ################################################################################
-
+        # forward_output = np.zeros(shape=(X.shape[0], self.params['W'].shape[1]))
+        # interim = np.matmul(X, self.params['W'])
+        forward_output = np.matmul(X, self.params['W']) + self.params['b'][0]
+        breakpoint()
         return forward_output
 
     def backward(self, X, grad):
@@ -90,7 +94,11 @@ class linear_layer:
         #   - backward_output (N-by-input_D numpy array, the gradient of the mini-batch loss w.r.t. X)
         # only return backward_output, but need to compute self.gradient['W'] and self.gradient['b']
         #################################################################################################
-
+        # breakpoint()
+        self.gradient['W'] = np.matmul(X, self.params['W'])
+        self.gradient['b'] = np.zeros(shape=self.params['b'].shape)
+        # breakpoint()
+        backward_output = np.matmul(grad, np.transpose(self.params['W']))
         return backward_output
 
 
@@ -98,6 +106,10 @@ class linear_layer:
 class relu:
     """
         The relu (rectified linear unit) module.
+
+        compute the relu by computing a mask that indicates the spots where the gradient is nonzero
+        Relu is a layer in the model
+    
 
         It is built up with NO arguments.
         It has no parameters to learn.
@@ -121,7 +133,8 @@ class relu:
         ################################################################################
         # TODO: Implement the relu forward pass. Store the result in forward_output    #
         ################################################################################
-
+        forward_output = np.maximum(X, 0)
+        self.mask = X > 0
         return forward_output
 
     def backward(self, X, grad):
@@ -141,24 +154,24 @@ class relu:
         # TODO: Implement the backward pass
         # You can use the mask created in the forward step.
         ####################################################################################################
-
+        backward_output = np.multiply(self.mask, grad)
         return backward_output
 
 
 # 3. Mini-batch Gradient Descent Optimization
 def miniBatchGradientDescent(model, _learning_rate):
     for module_name, module in model.items():
-
         # check if a module has learnable parameters
         if hasattr(module, 'params'):
             for key, _ in module.params.items():
                 # This is the gradient for the parameter named "key" in this module
                 g = module.gradient[key]
-
                 ####################################################################################
                 # TODO: update the model parameter module.params[key] by a step of gradient descent.
                 # Note again that the gradient is stored in g already.
                 ####################################################################################
+                # breakpoint()
+                module.params[key] = module.params[key] - _learning_rate * g[0]
 
     return model
 
@@ -180,7 +193,8 @@ def backward_pass(model, x, a1, h1, a2, y):
     # TODO: Call the backward methods of every layer in the model in reverse order.
     # We have given the first and last backward calls (above and below this TODO block).
     ######################################################################################
-
+    grad_h1 = model['L2'].backward(h1, grad_a2)
+    grad_a1 = model['nonlinear1'].backward(a1, grad_h1)
     grad_x = model['L1'].backward(x, grad_a1)
 
 
@@ -199,7 +213,7 @@ def compute_accuracy_loss(N_data, DataSet, model, minibatch_size=1000):
         loss += batch_loss
         acc += np.sum(predict_label(a2) == y)
         count += len(y)
-
+        # breakpoint()
     return acc / count, loss
 
 
@@ -265,7 +279,12 @@ def gradient_checker(DataSet, model):
         # Take one forward pass with w - epsilon
         # Refer to the lecture notes for the exact equation for computing the approximate gradient
         ######################################################################################
-
+        model[layer_name].params[param_name] -= 2*epsilon
+        _, _, _, f_w_subtract_epsilon = forward_pass(model, x, y)
+        approximate_gradient = (f_w_add_epsilon - f_w_subtract_epsilon)/2*epsilon_value
+        # Reset the model layer weights
+        model[layer_name].params[param_name] += epsilon
+        # breakpoint()
         print("Check the gradient of %s in the %s layer from backpropagation: %f and from approximation: %f"
               % (param_name, layer_name, grad, approximate_gradient))
 
